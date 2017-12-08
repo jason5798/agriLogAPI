@@ -1,0 +1,6 @@
+{
+'redmine_server': "http://210.242.93.31/redmine",
+'redmine_username': 'root',
+'redmine_password': 'gemtek12345',
+'redmine_apikey': 'c0a79ea2c2b247aed6a797d74c17d641cf835cb4'
+}
