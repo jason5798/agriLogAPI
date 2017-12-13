@@ -54,10 +54,8 @@ router.route('/')
     params.membership.project_id = req.body.project_id;
     params.membership.user_ids = req.body.user_ids;
     params.membership.api_key = req.body.api_key;
-    //Optional
-    if (req.body.role_ids) {
-        params.membership.role_ids = req.body.role_ids;
-    }
+    params.membership.role_ids = req.body.role_ids;
+    
     //Verify post data is empty or not
     var verifyResult = tools.validateValue (params.membership);
     if(verifyResult !== 'ok') {
@@ -71,17 +69,8 @@ router.route('/')
     var roleIdArr = roleIdStr.split(",");
     params.membership.role_ids = roleIdArr;
     //Remove project_id from membership, it's for check.
-    delete params.membership.project_id
-    delete params.membership.api_key
-    if (req.body.role_ids) {
-        //By use setting
-        var roleIdStr = req.body.role_ids;
-        var roleIdArr = roleIdStr.split(",");
-        params.membership.role_ids = roleIdArr;
-    } else {
-        //Default set 7 : Operator
-        params.membership.role_ids = ['7'];
-    }
+    delete params.membership.project_id;
+    delete params.membership.api_key;
     // Http request
     var redmine = membership.initByApiKey(req.body.api_key);
     membership.insertProjectMembership(redmine, req.body.project_id, params).then(function(membership) {

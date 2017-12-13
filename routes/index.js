@@ -107,9 +107,11 @@ router.route('/upload')
     // specify that we want to allow the user to upload multiple files in a single request
     form.multiples = true;
     // store all uploads in the /uploads directory
-    form.uploadDir = path.join(__dirname, '../uploads');
+    // form.uploadDir = path.join(__dirname, '../uploads');
 
     form.parse(req, function (err, fields, files) {
+      console.log('fields : \n%s',JSON.stringify(fields)); 
+      console.log('files : \n%s',JSON.stringify(files));
       var verifyResult = tools.validateValue (fields);
       if(verifyResult !== 'ok') {
         res.status(400).send(verifyResult);
@@ -118,16 +120,19 @@ router.route('/upload')
       let keys = Object.keys(fields);
       let api_key = fields[keys[0]];
       // Post params check -- start
-      
+      console.log('api_key : \n%s',api_key);
       let keys2 = Object.keys(files);
       let file = files[keys2[0]];
+      console.log('file path : \n%s',file.path);
       myhttpreq.initByApiKey(api_key);
       var stream = fs.createReadStream(file.path);
       myhttpreq.uploadFile(stream,function(err,result){
-        fs.unlinkSync(file.path);
+        //fs.unlinkSync(file.path);
         if (err) {
+	        console.log('upload err : \n%s', err);
           res.send(err);
         } else {
+	        console.log('upload finish : \n%s', result);
           res.status(200).send(result);
         } 
       });

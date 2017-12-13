@@ -31,11 +31,14 @@ router.route('/')
       return;
     }
     var redmine = user.initByApiKey(params.api_key);
+    console.log('redmine : ' + JSON.stringify(redmine));
     user.queryUser(redmine,params).then(function(users) {
       // on fulfillment(已實現時)
+      console.log('users : ' + JSON.stringify(users));
       res.status(200).send(users);
     }, function(reason) {
       // 失敗時
+      console.log('get users err: ' + reason);
       res.send(reason);
     });
   })

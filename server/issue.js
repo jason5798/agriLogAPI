@@ -120,9 +120,9 @@ function removeIssue (redmine, issue_id) {
     redmine.delete_issue(issue_id, function(err) {
       if (!err) {
         console.log('removeDoc success')
-        resolve('ok')
+        resolve('Delete issue success')
       } else {
-        console.log('removeDoc error', err)
+        console.log('Delete issue error : ', err)
         reject(err)
       }
     })
@@ -133,10 +133,10 @@ function removeIssue (redmine, issue_id) {
   return new Promise(function (resolve, reject) {
     redmine.update_issue(issue_id,issue, function(err,data) {
       if (!err) {
-        console.log('update issue success')
-        resolve('ok')
+        console.log('Update issue success')
+        resolve('Update issue success')
       } else {
-        console.log('update issue error', err)
+        console.log('Update issue error', err)
         reject(err)
       }
     });

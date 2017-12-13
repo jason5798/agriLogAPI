@@ -81,13 +81,9 @@ router.route('/')
     params.issue.api_key = req.body.api_key;
     params.issue.project_id = req.body.project_id;
     params.issue.subject = req.body.subject;
+    params.issue.tracker_id = req.body.tracker_id;
+    params.issue.status_id = req.body.status_id;
     // Optional
-    if (req.body.tracker_id) {
-      params.issue.tracker_id = req.body.tracker_id;
-    }
-    if (req.body.status_id) {
-      params.issue.status_id = req.body.status_id;
-    }
     if (req.body.priority_id) {
       params.issue.priority_id = req.body.priority_id;
     }
@@ -213,7 +209,7 @@ router.route('/')
       delete params.issue.custom_fields_value;
     }
     if (req.body.custom_fields_id) {
-      delete params.custom_fields_id;
+      delete params.issue.custom_fields_id;
     }
     // Delete upload params of check
     if (req.body.token) {
@@ -294,8 +290,8 @@ module.exports = router;
 
 function getCustomFielsParams (params,id,value) {
   let filed = {
-    'value': id,
-    'id':value
+    'id': id,
+    'value':value
    };
   params.issue.custom_fields = [];
   params.issue.custom_fields.push(filed);
