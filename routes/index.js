@@ -26,37 +26,26 @@ router.route('/login')
       return;
     }
     
-    var redmine = issue.initByUser(params.user.login, params.user.password);
-    var redmine2 = user.initByApiKey(configs.redmine_apikey);
-    
-    params = {};
-    // User authentication 
-    issue.queryIssue(redmine, params).then(function(issues) {
-      // on fulfillment(已實現時)
-      // User authentication is OK
-      params.name = req.body.login
-      // Get user id
-      user.queryUser(redmine2, params).then(function(data) {
-        // Get user id is OK
-        // Get use apikey and membership
-        params = {};
-        params.include = 'memberships,groups';
-        user.queryUserById(redmine2, data.users[0].id, params).then(function(user) {
-          // Get use apikey and membership is OK
-          res.status(200).send(user);
-        }, function(reason) {
-          // Get use apikey and membership is fail
-          ressend(reason);
-        });
-      }, function(reason) {
-        // 失敗時
-        res.send(reason);
-      });
+    var redmineByUser = issue.initByUser(params.user.login, params.user.password);
+    var redmine2ByApiKey = user.initByApiKey(configs.redmine_apikey);
+    //Check user auth by user accound and password
+    user.queryUser(redmineByUser, {name: req.body.login}).then(function(data) {
+      toGetUserAllData(req, res, redmineByUser, data);
     }, function(reason) {
-      // User authentication is fail
-      res.send(reason);
+      // 失敗時
+      var obj = JSON.parse(reason);
+      if (Object.is(obj.Message, 'Forbidden')){ //No query limit
+        user.queryUser(redmine2ByApiKey, {name: req.body.login}).then(function(data) {
+          // Get user id is OK
+          toGetUserAllData(req, res, redmineByUser, data);
+        }, function(reason) {
+          // 失敗時
+          res.send(reason);
+        });
+      } else {
+        res.send(reason);
+      }
     });
-    
   })
 
 router.route('/custom_fields')
@@ -140,3 +129,28 @@ router.route('/upload')
 })
 
 module.exports = router;
+
+function toGetUserAllData (req, res, redmine ,data) {
+  var params = {};
+  params.include = 'memberships,groups';
+  let userId = -1;
+  if(data['users']){
+    let users = data.users;
+    users.forEach(function (user) {
+        if (Object.is(user.login.toLowerCase(), req.body.login.toLowerCase())) {
+          userId = user.id; 
+        }
+    });
+  }
+  if (userId !== -1) {
+    user.queryUserById(redmine, userId, params).then(function(user) {
+      // Get use apikey and membership is OK
+      res.status(200).send(user);
+    }, function(reason) {
+      // Get use apikey and membership is fail
+      res.send(reason);
+    });
+  } else {
+    res.status(400).send('This account is not exist!');
+  }
+}

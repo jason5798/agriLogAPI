@@ -157,7 +157,7 @@ router.route('/')
     // Require
     params.issue.api_key = req.body.api_key;
     params.issue.issue_id = req.body.issue_id;
-    // Optional
+    Optional
     if (req.body.project_id) {
       params.issue.project_id = req.body.project_id;
     }

@@ -53,7 +53,7 @@ router.route('/')
     params.user.firstname = req.body.firstname;
     params.user.lastname = req.body.lastname;
     params.user.mail = req.body.mail;
-    params.user.auth_source_id = 0;
+    // params.user.auth_source_id = 0;
     //Post params check
     var verifyResult = tools.validateValue (params.user);
     if(verifyResult !== 'ok') {
