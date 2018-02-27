@@ -25,11 +25,12 @@ router.route('/login')
       res.status(400).send(verifyResult);
       return;
     }
-    
+
     var redmineByUser = issue.initByUser(params.user.login, params.user.password);
     var redmine2ByApiKey = user.initByApiKey(configs.redmine_apikey);
     //Check user auth by user accound and password
     user.queryUser(redmineByUser, {name: req.body.login}).then(function(data) {
+      console.log('user : ' + JSON.stringify(data));
       toGetUserAllData(req, res, redmineByUser, data);
     }, function(reason) {
       // 失敗時
@@ -37,6 +38,7 @@ router.route('/login')
       if (Object.is(obj.Message, 'Forbidden')){ //No query limit
         user.queryUser(redmine2ByApiKey, {name: req.body.login}).then(function(data) {
           // Get user id is OK
+          console.log('user : ' + JSON.stringify(data));
           toGetUserAllData(req, res, redmineByUser, data);
         }, function(reason) {
           // 失敗時
@@ -50,7 +52,7 @@ router.route('/login')
 
 router.route('/custom_fields')
   .get(function(req, res) {
-    
+
     // Http request
     var redmine = issue.initByApiKey(configs.redmine_apikey);
     issue.queryCustomFields(redmine).then(function(fields) {
@@ -64,7 +66,7 @@ router.route('/custom_fields')
 
 router.route('/trackers')
   .get(function(req, res) {
-    
+
     // Http request
     var redmine = issue.initByApiKey(configs.redmine_apikey);
     issue.queryTrackers(redmine).then(function(trackers) {
@@ -99,7 +101,7 @@ router.route('/upload')
     // form.uploadDir = path.join(__dirname, '../uploads');
 
     form.parse(req, function (err, fields, files) {
-      console.log('fields : \n%s',JSON.stringify(fields)); 
+      console.log('fields : \n%s',JSON.stringify(fields));
       console.log('files : \n%s',JSON.stringify(files));
       var verifyResult = tools.validateValue (fields);
       if(verifyResult !== 'ok') {
@@ -123,7 +125,7 @@ router.route('/upload')
         } else {
 	        console.log('upload finish : \n%s', result);
           res.status(200).send(result);
-        } 
+        }
       });
     });
 })
@@ -134,18 +136,24 @@ function toGetUserAllData (req, res, redmine ,data) {
   var params = {};
   params.include = 'memberships,groups';
   let userId = -1;
+  let target = null;
   if(data['users']){
     let users = data.users;
     users.forEach(function (user) {
         if (Object.is(user.login.toLowerCase(), req.body.login.toLowerCase())) {
-          userId = user.id; 
+          userId = user.id;
+          target = user;
         }
     });
   }
   if (userId !== -1) {
-    user.queryUserById(redmine, userId, params).then(function(user) {
+    user.queryUserById(redmine, userId, params).then(function(data) {
       // Get use apikey and membership is OK
-      res.status(200).send(user);
+      // console.log('user : ' + JSON.stringify(user));
+      if (user.mail === undefined) {
+        data.user.mail = target.mail;
+      }
+      res.status(200).send(data);
     }, function(reason) {
       // Get use apikey and membership is fail
       res.send(reason);
