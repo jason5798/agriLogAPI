@@ -15,15 +15,19 @@ group_id: get only users who are members of the given group
 /* GET users listing. */
 router.route('/')
   .get(function(req, res) {
-    
+
     var params = {};
     //Require
     params.api_key = req.query.api_key;
     //Optional
     if(req.query.limit) params.limit = req.query.limit;
-    if(req.query.offset ) params.offset  = req.query.offset;
+    // if(req.query.offset ) params.offset  = req.query.offset;
     if(req.query.name ) params.name  = req.query.name;
     if(req.query.group_id) params.group_id = req.query.group_id;
+    if(req.query.sort) params.sort = req.query.sort;
+    var obj = tools.getPage(req);
+    params.offset = obj.offset;
+
     //Post params check
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
@@ -32,10 +36,19 @@ router.route('/')
     }
     var redmine = user.initByApiKey(params.api_key);
     console.log('redmine : ' + JSON.stringify(redmine));
-    user.queryUser(redmine,params).then(function(users) {
+    user.queryUser(redmine,params).then(function(data) {
       // on fulfillment(已實現時)
-      console.log('users : ' + JSON.stringify(users));
-      res.status(200).send(users);
+      console.log('users : ' + JSON.stringify(data));
+      var result = {
+                      total: data.total_count,
+                      previous: obj.previous,
+                      next: obj.next,
+                      page: obj.page,
+                      last: Math.ceil(data.total_count/obj.limit),
+                      limit: obj.limit,
+                      data: data.users
+                    };
+      res.status(200).send(result);
     }, function(reason) {
       // 失敗時
       console.log('get users err: ' + reason);

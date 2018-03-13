@@ -19,7 +19,7 @@ router.route('/')
     json.api_key = req.query.api_key;
     // Optional
     if(req.query.limit) json.limit = req.query.limit;
-    if(req.query.offset ) json.offset  = req.query.offset;
+    // if(req.query.offset ) json.offset  = req.query.offset;
     //Post params check --- start
     var verifyResult = tools.validateValue (json);
     if(verifyResult !== 'ok') {
@@ -27,13 +27,24 @@ router.route('/')
       return;
     }
     delete json.api_key;
+    var obj = tools.getPage(req);
+    json.offset = obj.offset;
     //Post params check --- end
     json.include = 'trackers';
     //Http request
     var redmine = project.initByApiKey(req.query.api_key);
-    project.queryProject(redmine, json).then(function(obj) {
+    project.queryProject(redmine, json).then(function(data) {
       // on fulfillment(已實現時)
-      res.status(200).send(obj);
+      var result = {
+        total: data.total_count,
+        previous: obj.previous,
+        next: obj.next,
+        page: obj.page,
+        last: Math.ceil(data.total_count/obj.limit),
+        limit: obj.limit,
+        data: data.projects
+      };
+      res.status(200).send(result);
     }, function(reason) {
       // 失敗時
       res.send(reason);

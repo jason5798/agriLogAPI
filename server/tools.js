@@ -38,11 +38,35 @@ function base64_encode(file) {
     console.log('******** File created from base64 encoded string ********');
   }
 
+  function getPage (req) {
+    var limit = Number(req.query.limit);
+    var page = 1;
+		if(req.query.page)
+			page = Number(req.query.page);
+		var offset = (page-1) * limit;
+
+		//Calculate pages
+		var next = Number(page)+1;
+		if(page != 1)
+			var previous = Number(page)-1;
+		else
+      var previous = Number(page);
+    var obj = {};
+    var offset = (page-1) * limit;
+    obj.previous = previous;
+    obj.next = next;
+    obj.page = page;
+    obj.limit = limit;
+    obj.offset = offset;
+    return obj;
+}
+
 module.exports = {
     validateValue,
     validateEmail,
     base64_encode,
-    base64_decode
+    base64_decode,
+    getPage
 }
 
 function validateEmail(email) {

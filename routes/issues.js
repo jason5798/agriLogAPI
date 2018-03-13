@@ -28,19 +28,20 @@ cf_x: get issues with the given value for custom field with an ID of x. (Custom 
 /* GET issue listing. */
 router.route('/')
   .get(function(req, res) {
-    
+
     var params = {};
     // Require
     params.api_key = req.query.api_key;
-    // Optional for 
+    // Optional for
     if (req.query.limit) params.limit = req.query.limit;
-    if (req.query.offset ) params.offset  = req.query.offset;
+    // if (req.query.offset ) params.offset  = req.query.offset;
     if (req.query.sort ) params.sort  = req.query.sort;
     if (req.query.group_id) params.group_id = req.query.group_id;
     if (req.query.project_id) params.project_id = req.query.project_id;
     if (req.query.tracker_id) params.tracker_id = req.query.tracker_id;
     if (req.query.start_date) params.start_date = req.query.start_date;
     if (req.query.assigned_to_id) params.assigned_to_id = req.query.assigned_to_id;
+    if(req.query.sort) params.sort = req.query.sort;
     // Post params check -- start
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
@@ -48,13 +49,24 @@ router.route('/')
       return;
     }
     delete params.api_key;
+    var obj = tools.getPage(req);
+    params.offset = obj.offset;
     // Post params check -- end
     params.include = 'attachments';
     // Http request
     var redmine = issue.initByApiKey(req.query.api_key);
-    issue.queryIssue(redmine, params).then(function(issues) {
+    issue.queryIssue(redmine, params).then(function(data) {
       // on fulfillment(已實現時)
-      res.status(200).send(issues);
+      var result = {
+        total: data.total_count,
+        previous: obj.previous,
+        next: obj.next,
+        page: obj.page,
+        last: Math.ceil(data.total_count/obj.limit),
+        limit: obj.limit,
+        data: data.issues
+      };
+      res.status(200).send(result);
     }, function(reason) {
       // 失敗時
       res.send(reason);
@@ -104,12 +116,8 @@ router.route('/')
     if (req.body.custom_fields_value) {
       params.issue.custom_fields_value = req.body.custom_fields_value;
     }
-    // Upload file
-    if (req.body.token) {
-      params.issue.token = req.body.token;
-    }
-    if (req.body.filename) {
-      params.issue.filename= req.body.filename;
+    if (req.body.uploads) {
+      params.issue.uploads = req.body.uploads;
     }
     // Post params check -- start
     var verifyResult = tools.validateValue (params.issue);
@@ -126,11 +134,8 @@ router.route('/')
       delete params.custom_fields_id;
     }
     // Delete upload params of check
-    if (req.body.token) {
-      delete params.issue.token;
-    }
-    if (req.body.filename) {
-      delete params.issue.filename;
+    if (req.body.uploads) {
+      delete params.issue.uploads;
     }
     // Post params check -- end
     // Set custom field params
@@ -138,8 +143,13 @@ router.route('/')
       params = getCustomFielsParams(params, req.body.custom_fields_id,req.body.custom_fields_value);
     }
     if (req.body.token) {
-      params =  getUploadParams (params, req.body.token, req.body.filename);
+      params =  getUploadParams (params, req.body.uploads);
+      if(params === null) {
+        res.status(400).send("uploads format error");
+        return;
+      }
     }
+    
     // Http request
     var redmine = issue.initByApiKey(req.body.api_key);
     issue.insertIssue(redmine, params).then(function(issue) {
@@ -189,13 +199,16 @@ router.route('/')
     if (req.body.custom_fields_value) {
       params.issue.custom_fields_value = req.body.custom_fields_value;
     }
+    if (req.body.uploads) {
+      params.issue.uploads = req.body.uploads;
+    }
     // Upload file
-    if (req.body.token) {
+    /*if (req.body.token) {
       params.issue.token = req.body.token;
     }
     if (req.body.filename) {
       params.issue.filename= req.body.filename;
-    }
+    } */
     // Post params check -- start
     var verifyResult = tools.validateValue (params.issue);
     if(verifyResult !== 'ok') {
@@ -212,19 +225,20 @@ router.route('/')
       delete params.issue.custom_fields_id;
     }
     // Delete upload params of check
-    if (req.body.token) {
-      delete params.issue.token;
-    }
-    if (req.body.filename) {
-      delete params.issue.filename;
+    if (req.body.uploads) {
+      delete params.issue.uploads;
     }
     // Post params check -- end
     // Set custom field params
     if(req.body.custom_fields_id) {
       params = getCustomFielsParams(params, req.body.custom_fields_id,req.body.custom_fields_value);
     }
-    if (req.body.token) {
-      params =  getUploadParams (params, req.body.token, req.body.filename);
+    if (req.body.uploads) {
+      params =  getUploadParams (res, params, req.body.uploads);
+      if(params === null) {
+        res.status(400).send("uploads format error");
+        return;
+      }
     }
     //Http request
     var redmine = issue.initByApiKey(req.body.api_key);
@@ -298,22 +312,14 @@ function getCustomFielsParams (params,id,value) {
   return params;
 }
 
-function getUploadParams (params,token,filename) {
-  var arr = filename.split(".");
-  if (arr.length < 2) {
-    return params;
+function getUploadParams (params, uploads) {
+  var json = null;
+  try {
+    var json = JSON.parse(uploads);
+  } catch (error) {
+    console.log('Upload parser error');
+    return null;
   }
-  var attached = arr[1];
-  if (attached !=='jpg' && attached !== 'png' && attached !=='gif') {
-    return params;
-  }
-  let type = 'image/' + attached;
-  let filed = {
-    'token': token,
-    'filename': filename,
-    'content_type': type
-   };
-  params.issue.uploads = [];
-  params.issue.uploads.push(filed);
+  params.issue.uploads = json;
   return params;
 }
