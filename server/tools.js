@@ -39,7 +39,9 @@ function base64_encode(file) {
   }
 
   function getPage (req) {
-    var limit = Number(req.query.limit);
+    var limit = 10;
+    if(req.query.limit)
+      limit = Number(req.query.limit);
     var page = 1;
 		if(req.query.page)
 			page = Number(req.query.page);
