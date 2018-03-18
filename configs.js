@@ -7,8 +7,8 @@ module.exports = {
     'port': 8000,
     // 'redmine_server': "http://redmine.securepilot.com/redmine",
     'redmine_server': "http://210.242.93.31/redmine",
-    'redmine_username': 'root',
+    'redmine_username': 'admin',
     'redmine_password': 'gemtek12345',
-    'redmine_apikey': 'c0a79ea2c2b247aed6a797d74c17d641cf835cb4',
+    'redmine_apikey': '176080a0781597e5b434019a2fa4f7b87ad0b08b',
     'project_id': 1
   }
