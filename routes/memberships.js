@@ -88,7 +88,7 @@ router.route('/')
     var redmine = membership.initByApiKey(req.body.api_key);
     membership.insertProjectMembership(redmine, req.body.project_id, params).then(function(membership) {
       // on fulfillment(已實現時)
-      res.status(200).send(membership);
+      res.status(200).send("Create membership success");
     }, function(reason) {
       // 失敗時
       res.send(reason);
@@ -121,7 +121,6 @@ router.route('/')
     } else {
       params.membership.role_ids = [roleIdStr];
     }
-    params.membership.role_ids = roleIdArr;
     //Remove project_id from membership, it's for check.
     delete params.membership.membership_id;
     delete params.membership.api_key;
