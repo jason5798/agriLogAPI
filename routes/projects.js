@@ -102,6 +102,10 @@ router.route('/')
     if (req.body.parent_id) {
       params.project.parent_id = req.body.parent_id;
     }
+    if (req.body.description) {
+      params.project.description = req.body.description;
+    }
+    
     // Post params check --- start
     var verifyResult = tools.validateValue (params.project);
     if(verifyResult !== 'ok') {
