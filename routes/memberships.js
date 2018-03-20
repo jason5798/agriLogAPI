@@ -66,8 +66,21 @@ router.route('/')
 *  example : role_ids=1,2,3=>['1', '2', '3']
 */
     var roleIdStr = req.body.role_ids;
-    var roleIdArr = roleIdStr.split(",");
-    params.membership.role_ids = roleIdArr;
+    var userIdStr = req.body.user_ids;
+    
+    if (roleIdStr.includes(',')) {
+      var roleIdArr = roleIdStr.split(",");
+      params.membership.role_ids = roleIdArr;
+    } else {
+      params.membership.role_ids = [roleIdStr];
+    }
+    if (userIdStr.includes(',')) {
+      var userIdArr = userIdStr.split(",");
+      params.membership.user_ids = userIdArr;
+    } else {
+      params.membership.user_ids = [userIdStr];
+    }
+    
     //Remove project_id from membership, it's for check.
     delete params.membership.project_id;
     delete params.membership.api_key;
@@ -102,7 +115,12 @@ router.route('/')
     *  example : role_ids=3,4,5,7=>['3', '4', '5','7']        
     */
     var roleIdStr = req.body.role_ids;
-    var roleIdArr = roleIdStr.split(",");
+    if (roleIdStr.includes(',')) {
+      var roleIdArr = roleIdStr.split(",");
+      params.membership.role_ids = roleIdArr;
+    } else {
+      params.membership.role_ids = [roleIdStr];
+    }
     params.membership.role_ids = roleIdArr;
     //Remove project_id from membership, it's for check.
     delete params.membership.membership_id;

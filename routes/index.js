@@ -34,7 +34,10 @@ router.route('/login')
       toGetUserAllData(req, res, redmineByUser, data);
     }, function(reason) {
       // 失敗時
-      var obj = JSON.parse(reason);
+      var obj = reason;
+	  if(typeof(reason) !== 'object') {
+        obj = JSON.parse(reason);
+      }
       if (Object.is(obj.Message, 'Forbidden')){ //No query limit
         user.queryUser(redmine2ByApiKey, {name: req.body.login}).then(function(data) {
           // Get user id is OK
