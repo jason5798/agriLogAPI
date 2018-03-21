@@ -95,6 +95,7 @@ router.route('/')
     params.issue.subject = req.body.subject;
     params.issue.tracker_id = req.body.tracker_id;
     params.issue.status_id = req.body.status_id;
+    params.issue.start_date = req.body.start_date;
     // Optional
     if (req.body.priority_id) {
       params.issue.priority_id = req.body.priority_id;
@@ -108,6 +109,10 @@ router.route('/')
     if (req.body.category_id) {
       let id = req.body.category_id;
       params.issue.category_id = parseInt(id);
+    }
+    //Start Date
+    if (req.body.start_date) {
+      params.issue.start_date = req.body.start_date;
     }
     // Custom fields check
     if (req.body.custom_fields_id) {
@@ -142,7 +147,7 @@ router.route('/')
     if(req.body.custom_fields_id) {
       params = getCustomFielsParams(params, req.body.custom_fields_id,req.body.custom_fields_value);
     }
-    if (req.body.token) {
+    if (req.body.uploads) {
       params =  getUploadParams (params, req.body.uploads);
       if(params === null) {
         res.status(400).send("uploads format error");
@@ -192,6 +197,22 @@ router.route('/')
     if (req.body.category_id) {
       params.issue.category_id = req.body.category_id;
     }
+    //Start Date
+    if (req.body.start_date) {
+      params.issue.start_date = req.body.start_date;
+    }
+    //End Date 
+    if (req.body.due_date) {
+      params.issue.due_date = req.body.due_date;
+    }
+    //done_ratio - Complete percentage
+    if (req.body.done_ratio) {
+      params.issue.done_ratio = req.body.done_ratio;
+    }
+    //estimated_hours
+    if (req.body.estimated_hours) {
+      params.issue.estimated_hours = req.body.estimated_hours;
+    }
     // Custom fields check
     if (req.body.custom_fields_id) {
       params.issue.custom_fields_id = req.body.custom_fields_id;
@@ -234,7 +255,7 @@ router.route('/')
       params = getCustomFielsParams(params, req.body.custom_fields_id,req.body.custom_fields_value);
     }
     if (req.body.uploads) {
-      params =  getUploadParams (res, params, req.body.uploads);
+      params =  getUploadParams (params, req.body.uploads);
       if(params === null) {
         res.status(400).send("uploads format error");
         return;
