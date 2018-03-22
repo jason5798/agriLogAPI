@@ -45,10 +45,10 @@ function insertProject (redmine, params) {
   return new Promise(function (resolve, reject) {
     redmine.create_project(params, function(err, data) {
       if (!err) {
-        console.log('Insert poject success', data)
+        console.log('Insert project success', data)
         resolve(data)
       } else {
-        console.log('Insert poject error', err)
+        console.log('Insert project error', err)
         reject(err)
       }
     });
@@ -72,11 +72,11 @@ function queryProject (redmine, params) {
     redmine.projects(params, function(err, data) {
       if (!err) {
         if(data){
-          console.log('Query poject success : ' + data.projects.length);
+          console.log('Query project success : ' + data.projects.length);
         }
         resolve(data)
       } else {
-        console.log('Query poject error', err)
+        console.log('Query project error', err)
         reject(err)
       }
     });
@@ -93,10 +93,10 @@ function removeProject (redmine, project_id) {
   return new Promise(function (resolve, reject) {
     redmine.delete_project(project_id, function(err) {
       if (!err) { 
-        console.log('Delete poject success')
-        resolve('Delete poject success')
+        console.log('Delete project success')
+        resolve('Delete project success')
       } else {
-        console.log('Delete poject error', err)
+        console.log('Delete project error', err)
         reject(err)
       }
     })
@@ -114,7 +114,7 @@ function updateProject (redmine, project_id, params) {
     redmine.update_project(project_id, params, function(err,data) {
       if (!err) {
         console.log('Update poject success')
-        resolve('Update poject success')
+        resolve('Update project success')
       } else {
         console.log('Update poject error', err)
         reject(err)
@@ -127,10 +127,10 @@ function queryProjectById (redmine, poject_id, params) {
     return new Promise(function (resolve, reject) {
         redmine.get_project_by_id(poject_id, params, function(err,data) {
         if (!err) {
-            console.log('Query poject by id success')
+            console.log('Query project by id success')
             resolve(data)
         } else {
-            console.log('Query poject by id error ' + err)
+            console.log('Query project by id error ' + err)
             reject(err)
         }
         });
