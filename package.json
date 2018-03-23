@@ -1,11 +1,12 @@
 {
   "name": "jwttest",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "private": true,
   "scripts": {
     "start": "node apiServer.js"
   },
   "dependencies": {
+    "async": "^2.6.0",
     "body-parser": "~1.17.1",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.3",

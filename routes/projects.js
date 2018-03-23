@@ -3,6 +3,7 @@ var router = express.Router();
 var project = require('../server/project.js');
 var configs =  require('../configs.js');
 var tools =  require('../server/tools.js');
+var async  = require('async');
 /*
 *Parameters:
 *
@@ -23,7 +24,10 @@ router.route('/')
     //Post params check --- start
     var verifyResult = tools.validateValue (json);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     delete json.api_key;
@@ -33,22 +37,29 @@ router.route('/')
     json.include = 'trackers';
     //Http request
     var redmine = project.initByApiKey(req.query.api_key);
-    project.queryProject(redmine, json).then(function(data) {
-      // on fulfillment(已實現時)
-      var result = {
-        total: data.total_count,
-        previous: obj.previous,
-        next: obj.next,
-        page: obj.page,
-        last: Math.ceil(data.total_count/obj.limit),
-        limit: obj.limit,
-        data: data.projects
-      };
-      res.status(200).send(result);
-    }, function(reason) {
-      // 失敗時
-      res.send(reason);
-    });
+    if (req.query.page === '0') {
+      getAllProjects(req,res,redmine,json);
+    } else {
+      project.queryProject(redmine, json).then(function(data) {
+        // on fulfillment(已實現時)
+        var result = {
+          total: data.total_count,
+          previous: obj.previous,
+          next: obj.next,
+          page: obj.page,
+          last: Math.ceil(data.total_count/obj.limit),
+          limit: obj.limit,
+          data: data.projects
+        };
+        res.status(200).send(result);
+      }, function(reason) {
+        // 失敗時
+        res.send({
+          "status": "401",
+          "message": reason
+        });
+      });
+    }
   })
 
   //New project
@@ -63,7 +74,10 @@ router.route('/')
     // Post params check --- start
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     delete params.project.api_key
@@ -82,10 +96,17 @@ router.route('/')
     var redmine = project.initByApiKey(req.body.api_key);
     project.insertProject(redmine, params).then(function(result) {
       // on fulfillment(已實現時)
-      res.status(200).send(result);
+      res.send({
+        "status": "200",
+        "message": result
+      });
+      result
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      res.send({
+        "status": "401",
+        "message": reason
+      });
     });
   })
 
@@ -109,7 +130,10 @@ router.route('/')
     // Post params check --- start
     var verifyResult = tools.validateValue (params.project);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     delete params.project.api_key;
@@ -118,10 +142,16 @@ router.route('/')
     var redmine = project.initByApiKey(req.body.api_key);
     project.updateProject(redmine, req.body.project_id, params).then(function(user) {
       // on fulfillment(已實現時)
-      res.status(200).send(user);
+      res.send({
+        "status": "200",
+        "message": result
+      });
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      res.send({
+        "status": "401",
+        "message": reason
+      });
     });
   })
 
@@ -134,7 +164,10 @@ router.route('/')
     // Post params check --- start
     var verifyResult = tools.validateValue (json);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     // Post params check --- end
@@ -142,10 +175,16 @@ router.route('/')
     var redmine = project.initByApiKey(req.body.api_key);
     project.removeProject(redmine, req.body.project_id).then(function(result) {
       // on fulfillment(已實現時)
-      res.status(200).send(result);
+      res.send({
+        "status": "200",
+        "message": result
+      });
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      res.send({
+        "status": "401",
+        "message": reason
+      });
     });
   })
 
@@ -159,7 +198,10 @@ router.route('/:id')
     // Post params check --- start
     var verifyResult = tools.validateValue (json);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     // Post params check --- end
@@ -171,8 +213,90 @@ router.route('/:id')
       res.status(200).send(users);
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      res.send({
+        "status": "401",
+        "message": reason
+      });
     });
   })
 
 module.exports = router;
+
+function getAllProjects(req,res,redmine,params) {
+  
+  async.waterfall([
+    function(next){
+      params.limit = 100;
+      getProject(redmine, params, function(err1, result1){
+        if(result1.total_count < params.limit) {
+          res.status(200).send(result1.projects);
+          return;
+        } 
+        next(err1, result1);
+      });
+    },
+    function(rst1, next){
+      getOtherProject(redmine, params, rst1, function(err2, result2){
+          next(err2, result2);
+      });
+    }
+    ], function(err, rst){
+        if (err === 'finish') {
+          res.status(200).send(rst);
+        } else {
+          var message = err;
+          if (typeof(err) === 'string') {
+            var err = JSON.parse(err);
+            message = err.Message;
+          }
+          if (message===null) {
+            message = err;
+          }
+          res.send({
+            "status": "401",
+            "message": message
+          });
+        }
+        //console.log(rst);   // 收到的 rst = 上面的 result4
+    });
+}
+
+function getOtherProject(redmine, params, rst,callback) {
+  var total = rst.total_count;
+  var offset = rst.offset;
+  var limit = rst.limit;
+  params.offset = 0;
+  
+  async.forever(function(next){
+    params.offset = params.offset + limit;
+    getProject(redmine, params, function(err, result){
+        if (!err) {
+          rst.projects = rst.projects.concat(result.projects);
+        } 
+        
+        if (rst.projects.length === rst.total_count) {
+          err = 'finish';//If has err
+        }
+        next(err);
+        if(err === 'finish') {
+          return callback(err, rst.projects);
+        } else if(err) {
+          return callback(err, null);
+        }
+    });
+
+  }, function(err){
+      console.log('error!!!');
+      console.log(err);
+  });
+}
+
+function getProject(redmine, params, callback) {
+  project.queryProject(redmine, params).then(function(data) {
+    // on fulfillment(已實現時)
+    return callback(null,data);
+  }, function(reason) {
+    // 失敗時
+    return callback(reason,null);
+  });
+}

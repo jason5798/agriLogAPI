@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 var issue = require('../server/issue.js');
 var tools =  require('../server/tools.js');
+var async  = require('async');
 /*
 Parameters:
 
@@ -45,32 +46,43 @@ router.route('/')
     // Post params check -- start
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     delete params.api_key;
-    var obj = tools.getPage(req);
-    params.offset = obj.offset;
+    
     // Post params check -- end
     params.include = 'attachments';
-    // Http request
     var redmine = issue.initByApiKey(req.query.api_key);
-    issue.queryIssue(redmine, params).then(function(data) {
-      // on fulfillment(已實現時)
-      var result = {
-        total: data.total_count,
-        previous: obj.previous,
-        next: obj.next,
-        page: obj.page,
-        last: Math.ceil(data.total_count/obj.limit),
-        limit: obj.limit,
-        data: data.issues
-      };
-      res.status(200).send(result);
-    }, function(reason) {
-      // 失敗時
-      res.send(reason);
-    });
+    if (req.query.page === '0') {
+      getAllissues(req,res,redmine,params);
+    } else {
+      // Http request
+      var obj = tools.getPage(req);
+      params.offset = obj.offset;
+      issue.queryIssue(redmine, params).then(function(data) {
+        // on fulfillment(已實現時)
+        var result = {
+          total: data.total_count,
+          previous: obj.previous,
+          next: obj.next,
+          page: obj.page,
+          last: Math.ceil(data.total_count/obj.limit),
+          limit: obj.limit,
+          data: data.issues
+        };
+        res.status(200).send(result);
+      }, function(reason) {
+        // 失敗時
+        res.send({
+          "status": "401",
+          "message": reason
+        });
+      });
+    }
   })
 
   /**
@@ -127,7 +139,10 @@ router.route('/')
     // Post params check -- start
     var verifyResult = tools.validateValue (params.issue);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     delete params.issue.api_key;
@@ -150,7 +165,10 @@ router.route('/')
     if (req.body.uploads) {
       params =  getUploadParams (params, req.body.uploads);
       if(params === null) {
-        res.status(400).send("uploads format error");
+        res.send({
+          "status": "400",
+          "message": "uploads format error"
+        });
         return;
       }
     }
@@ -159,10 +177,16 @@ router.route('/')
     var redmine = issue.initByApiKey(req.body.api_key);
     issue.insertIssue(redmine, params).then(function(issue) {
       // on fulfillment(已實現時)
-      res.status(200).send(issue);
+      res.send({
+        "status": "200",
+        "message": issue
+      });
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      res.send({
+        "status": "401",
+        "message": reason
+      });
     });
   })
 
@@ -233,7 +257,10 @@ router.route('/')
     // Post params check -- start
     var verifyResult = tools.validateValue (params.issue);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     delete params.issue.api_key;
@@ -257,7 +284,10 @@ router.route('/')
     if (req.body.uploads) {
       params =  getUploadParams (params, req.body.uploads);
       if(params === null) {
-        res.status(400).send("uploads format error");
+        res.send({
+          "status": "400",
+          "message": "uploads format error"
+        });
         return;
       }
     }
@@ -265,10 +295,16 @@ router.route('/')
     var redmine = issue.initByApiKey(req.body.api_key);
     issue.updateIssue(redmine, req.body.issue_id, params).then(function(result) {
       // on fulfillment(已實現時)
-      res.status(200).send(result);
+      res.send({
+        "status": "200",
+        "message": result
+      });
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      res.send({
+        "status": "401",
+        "message": reason
+      });
     });
   })
 
@@ -281,17 +317,26 @@ router.route('/')
     // Post params check -- start
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     // Post params check -- end
     var redmine = issue.initByApiKey(req.body.api_key);
     issue.removeIssue(redmine, req.body.issue_id).then(function(result) {
       // on fulfillment(已實現時)
-      res.status(200).send(result);
+      res.send({
+        "status": "200",
+        "message": result
+      });
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      res.send({
+        "status": "401",
+        "message": reason
+      });
     });
   })
 
@@ -305,19 +350,25 @@ router.route('/:id')
     // Post params check -- start
     var verifyResult = tools.validateValue (json);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      res.send({
+        "status": "400",
+        "message": verifyResult
+      });
       return;
     }
     // Post params check -- end
     params.include = 'memberships,attachments';
     var redmine = issue.initByApiKey(json.api_key);
     var id = req.params.id;
-    issue.queryIssueById(redmine, Number(id), params).then(function(users) {
+    issue.queryIssueById(redmine, Number(id), params).then(function(issues) {
       // on fulfillment(已實現時)
-      res.status(200).send(users);
+      res.status(200).send(issues);
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      res.send({
+        "status": "401",
+        "message": reason
+      });
     });
   })
 
@@ -343,4 +394,84 @@ function getUploadParams (params, uploads) {
   }
   params.issue.uploads = json;
   return params;
+}
+
+function getAllissues(req,res,redmine,params) {
+  
+  async.waterfall([
+    function(next){
+      params.limit = 100;
+      getIssue(redmine, params, function(err1, result1){
+          next(err1, result1);
+      });
+    },
+    function(rst1, next){
+      getOtherIssue(redmine, params, rst1, function(err2, result2){
+        if(result2.total_count < params.limit) {
+          res.status(200).send(result2.issues);
+          return;
+        }   
+        next(err2, result2);
+      });
+    }
+    ], function(err, rst){
+        if (err === 'finish') {
+          res.status(200).send(rst);
+        } else {
+          var message = err;
+          if (typeof(err) === 'string') {
+            var err = JSON.parse(err);
+            message = err.Message;
+          }
+          if (message===null) {
+            message = err;
+          }
+          
+          res.send({
+            "status": "401",
+            "message": message
+          });
+        }
+        //console.log(rst);   // 收到的 rst = 上面的 result4
+    });
+}
+
+function getOtherIssue(redmine, params, rst,callback) {
+  var total = rst.total_count;
+  var offset = rst.offset;
+  var limit = rst.limit;
+  params.offset = 0;
+  
+  async.forever(function(next){
+    params.offset = params.offset + limit;
+    getIssue(redmine, params, function(err, result){
+        if (!err) {
+          rst.issues = rst.issues.concat(result.issues);
+        } 
+        
+        if (rst.issues.length === rst.total_count) {
+          err = 'finish';//If has err
+        }
+        next(err);
+        if(err === 'finish') {
+          return callback(err, rst.issues);
+        } else if(err) {
+          return callback(err, null);
+        }
+    });
+
+  }, function(err){
+      console.log('error!!!');
+      console.log(err);
+  });
+}
+
+function getIssue(redmine, params, callback) {
+  issue.queryIssue(redmine, params).then(function(data) {
+    // on fulfillment(已實現時)
+    return callback(null,data);
+  }, function(reason) {
+    // 失敗時
+    return callback(reason,null);
+  });
 }
