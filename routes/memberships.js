@@ -29,17 +29,21 @@ router.route('/')
     //Verify post data is empty or not
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     // Http request
     var redmine = membership.initByApiKey(req.query.api_key);
     membership.queryProjectMembership(redmine, req.query.project_id).then(function(memberships) {
       // on fulfillment(已實現時)
-      res.status(200).send(memberships);
+      var result = {
+        total: memberships.length,
+        data: memberships
+      };
+      tools.returnQueryResult (res, result);
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -59,7 +63,7 @@ router.route('/')
     //Verify post data is empty or not
     var verifyResult = tools.validateValue (params.membership);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
 /* parse ids string to array
@@ -88,10 +92,10 @@ router.route('/')
     var redmine = membership.initByApiKey(req.body.api_key);
     membership.insertProjectMembership(redmine, req.body.project_id, params).then(function(membership) {
       // on fulfillment(已實現時)
-      res.status(200).send("Create membership success");
+      tools.returnExcuteResult (res, "Create membership success");
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -108,7 +112,7 @@ router.route('/')
     //Verify post data is empty or not
     var verifyResult = tools.validateValue (params.membership);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     /* parse ids string to array
@@ -128,10 +132,10 @@ router.route('/')
     var redmine = membership.initByApiKey(req.body.api_key);
     membership.updateProjectMembership(redmine, req.body.membership_id, params).then(function(result) {
       // on fulfillment(已實現時)
-      res.status(200).send(result);
+      tools.returnExcuteResult (res, result);
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -144,17 +148,17 @@ router.route('/')
     //Verify post data is empty or not
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     // Http request
     var redmine = membership.initByApiKey(req.body.api_key);
     membership.removeProjectMembership(redmine, req.body.membership_id).then(function(result) {
       // on fulfillment(已實現時)
-      res.status(200).send(result);
+      tools.returnExcuteResult (res, result);
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      tools.returnServerErr (res, reason);
     });
   })
 

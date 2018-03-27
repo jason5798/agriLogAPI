@@ -1,5 +1,6 @@
 var Redmine = require('node-redmine');
 var configs =  require('../configs.js');
+var tools =  require('../server/tools.js');
 ///////////////////////////////////////////////////////////////
 var hostname =  configs.redmine_server;
 /* var config = {
@@ -45,10 +46,10 @@ function insertProject (redmine, params) {
   return new Promise(function (resolve, reject) {
     redmine.create_project(params, function(err, data) {
       if (!err) {
-        console.log('Insert project success', data)
-        resolve(data)
+        console.log('Create project success', data)
+        resolve('Create project success')
       } else {
-        console.log('Insert project error', err)
+        console.log('Create project error', err)
         reject(err)
       }
     });

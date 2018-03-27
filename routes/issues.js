@@ -46,10 +46,7 @@ router.route('/')
     // Post params check -- start
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.send({
-        "status": "400",
-        "message": verifyResult
-      });
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     delete params.api_key;
@@ -74,13 +71,10 @@ router.route('/')
           limit: obj.limit,
           data: data.issues
         };
-        res.status(200).send(result);
+        tools.returnQueryResult (res, result);
       }, function(reason) {
         // 失敗時
-        res.send({
-          "status": "401",
-          "message": reason
-        });
+        tools.returnServerErr (res, reason);
       });
     }
   })
@@ -126,6 +120,14 @@ router.route('/')
     if (req.body.start_date) {
       params.issue.start_date = req.body.start_date;
     }
+    //done_ratio - Complete percentage
+    if (req.body.done_ratio) {
+      params.issue.done_ratio = req.body.done_ratio;
+    }
+    //estimated_hours
+    if (req.body.estimated_hours) {
+      params.issue.estimated_hours = req.body.estimated_hours;
+    }
     // Custom fields check
     if (req.body.custom_fields_id) {
       params.issue.custom_fields_id = req.body.custom_fields_id;
@@ -139,10 +141,7 @@ router.route('/')
     // Post params check -- start
     var verifyResult = tools.validateValue (params.issue);
     if(verifyResult !== 'ok') {
-      res.send({
-        "status": "400",
-        "message": verifyResult
-      });
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     delete params.issue.api_key;
@@ -165,10 +164,7 @@ router.route('/')
     if (req.body.uploads) {
       params =  getUploadParams (params, req.body.uploads);
       if(params === null) {
-        res.send({
-          "status": "400",
-          "message": "uploads format error"
-        });
+        tools.returnFormateErr (res, "uploads format error");
         return;
       }
     }
@@ -177,16 +173,10 @@ router.route('/')
     var redmine = issue.initByApiKey(req.body.api_key);
     issue.insertIssue(redmine, params).then(function(issue) {
       // on fulfillment(已實現時)
-      res.send({
-        "status": "200",
-        "message": issue
-      });
+      tools.returnExcuteResult (res, issue);
     }, function(reason) {
       // 失敗時
-      res.send({
-        "status": "401",
-        "message": reason
-      });
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -257,10 +247,7 @@ router.route('/')
     // Post params check -- start
     var verifyResult = tools.validateValue (params.issue);
     if(verifyResult !== 'ok') {
-      res.send({
-        "status": "400",
-        "message": verifyResult
-      });
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     delete params.issue.api_key;
@@ -284,10 +271,7 @@ router.route('/')
     if (req.body.uploads) {
       params =  getUploadParams (params, req.body.uploads);
       if(params === null) {
-        res.send({
-          "status": "400",
-          "message": "uploads format error"
-        });
+        tools.returnFormateErr (res, "uploads format error");
         return;
       }
     }
@@ -295,16 +279,10 @@ router.route('/')
     var redmine = issue.initByApiKey(req.body.api_key);
     issue.updateIssue(redmine, req.body.issue_id, params).then(function(result) {
       // on fulfillment(已實現時)
-      res.send({
-        "status": "200",
-        "message": result
-      });
+      tools.returnExcuteResult (res, result);
     }, function(reason) {
       // 失敗時
-      res.send({
-        "status": "401",
-        "message": reason
-      });
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -317,26 +295,17 @@ router.route('/')
     // Post params check -- start
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.send({
-        "status": "400",
-        "message": verifyResult
-      });
+      tools.returnFormateErr (res, "uploads format error");
       return;
     }
     // Post params check -- end
     var redmine = issue.initByApiKey(req.body.api_key);
     issue.removeIssue(redmine, req.body.issue_id).then(function(result) {
       // on fulfillment(已實現時)
-      res.send({
-        "status": "200",
-        "message": result
-      });
+      tools.returnExcuteResult (res, result);
     }, function(reason) {
       // 失敗時
-      res.send({
-        "status": "401",
-        "message": reason
-      });
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -362,13 +331,10 @@ router.route('/:id')
     var id = req.params.id;
     issue.queryIssueById(redmine, Number(id), params).then(function(issues) {
       // on fulfillment(已實現時)
-      res.status(200).send(issues);
+      tools.returnQueryResult (res, issues);
     }, function(reason) {
       // 失敗時
-      res.send({
-        "status": "401",
-        "message": reason
-      });
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -407,8 +373,12 @@ function getAllissues(req,res,redmine,params) {
     },
     function(rst1, next){
       getOtherIssue(redmine, params, rst1, function(err2, result2){
-        if(result2.total_count < params.limit) {
-          res.status(200).send(result2.issues);
+        if(result2.total_count <= params.limit) {
+          var result = {
+            total: result2.issues.length,
+            data: result2.issues
+          };
+          tools.returnQueryResult (res, result);
           return;
         }   
         next(err2, result2);
@@ -416,21 +386,13 @@ function getAllissues(req,res,redmine,params) {
     }
     ], function(err, rst){
         if (err === 'finish') {
-          res.status(200).send(rst);
+          var result = {
+            total: rst.issues.length,
+            data: rst.issues
+          };
+          tools.returnQueryResult (res, result);
         } else {
-          var message = err;
-          if (typeof(err) === 'string') {
-            var err = JSON.parse(err);
-            message = err.Message;
-          }
-          if (message===null) {
-            message = err;
-          }
-          
-          res.send({
-            "status": "401",
-            "message": message
-          });
+          tools.returnServerErr (res, err);
         }
         //console.log(rst);   // 收到的 rst = 上面的 result4
     });
@@ -454,7 +416,7 @@ function getOtherIssue(redmine, params, rst,callback) {
         }
         next(err);
         if(err === 'finish') {
-          return callback(err, rst.issues);
+          return callback(err, rst);
         } else if(err) {
           return callback(err, null);
         }

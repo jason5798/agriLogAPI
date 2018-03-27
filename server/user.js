@@ -58,10 +58,10 @@ function inserUser (redmine, user) {
   return new Promise(function (resolve, reject) {
     redmine.create_user(user, function(err, data) {
       if (!err) {
-        console.log('Insert user success', data)
-        resolve(data)
+        console.log('Create user success', data)
+        resolve('Create user success')
       } else {
-        console.log('Insert user error', err)
+        console.log('Create user error', err)
         reject(err)
       }
     });

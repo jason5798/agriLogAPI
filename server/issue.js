@@ -70,8 +70,8 @@ function insertIssue (redmine, params) {
   return new Promise(function (resolve, reject) {
     redmine.create_issue(params, function(err, data) {
       if (!err) {
-        console.log('insert issue success', data)
-        resolve(data)
+        console.log('Create issue success', data)
+        resolve('Create issue success')
       } else {
         console.log('insert issue error', err)
         reject(err)

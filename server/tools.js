@@ -6,13 +6,13 @@ function validateValue (json) {
   if (keys.length === 0) {
     return result;
   }
-  for (let key in keys) {
-    let value = json[keys[key]];
+  for (let i = 0; i < keys.length; ++i) {
+    let value = json[keys[i]];
     if (value === null || value === undefined || value === '') {
-      result = 'Missing parameter : '+ keys[key];
+      result = 'Missing parameter : '+ keys[i];
       break;
     }
-    if(keys[key] === 'mail') {
+    if(keys[i] === 'mail') {
       if (!validateEmail(value)) {
         result = 'Mail parameter format error';
       }
@@ -43,8 +43,9 @@ function base64_encode(file) {
     if(req.query.limit)
       limit = Number(req.query.limit);
     var page = 1;
-		if(req.query.page)
-			page = Number(req.query.page);
+		if (req.query.page)
+      page = Number(req.query.page);
+    
 		var offset = (page-1) * limit;
 
 		//Calculate pages
@@ -68,10 +69,51 @@ module.exports = {
     validateEmail,
     base64_encode,
     base64_decode,
-    getPage
+    getPage,
+    returnServerErr,
+    returnFormateErr,
+    returnQueryResult,
+    returnExcuteResult
 }
 
 function validateEmail(email) {
   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);
+}
+
+function returnServerErr (res, str) {
+  var obj = str;
+  if (typeof(obj) === 'string') {
+    obj = JSON.parse(str);
+  }
+  var message = obj.Message;
+  if (obj.Detail) {
+    if (obj.Detail.errors) {
+      message = obj.Detail.errors;
+    } else {
+      message = obj.Detail;
+    }
+  }
+  res.send({
+    "status": obj.ErrorCode+'',
+    "message": message
+  });
+}
+
+function returnFormateErr (res, message) {
+  res.send({
+    "status": "400",
+    "message": message
+  });
+}
+
+function returnQueryResult (res, result) {
+  res.send(result);
+}
+
+function returnExcuteResult (res, message) {
+  res.send({
+    "status": "200",
+    "message": message
+  });
 }

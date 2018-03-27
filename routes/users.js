@@ -31,7 +31,7 @@ router.route('/')
     //Post params check
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     var redmine = user.initByApiKey(params.api_key);
@@ -48,11 +48,11 @@ router.route('/')
                       limit: obj.limit,
                       data: data.users
                     };
-      res.status(200).send(result);
+                    tools.returnQueryResult(res, result);
     }, function(reason) {
       // 失敗時
       console.log('get users err: ' + reason);
-      res.send(reason);
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -70,7 +70,7 @@ router.route('/')
     //Post params check
     var verifyResult = tools.validateValue (params.user);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     delete params.api_key;
@@ -78,10 +78,10 @@ router.route('/')
     user.inserUser(redmine, params).then(function(user) {
       // on fulfillment(已實現時)
       // Add membership to project
-      res.status(200).send(user);
+      tools.returnExcuteResult (res, user);
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -108,7 +108,7 @@ router.route('/')
     //Post params check
     var verifyResult = tools.validateValue (params.user);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     delete params.user.api_key;
@@ -116,10 +116,10 @@ router.route('/')
     var redmine = user.initByApiKey(req.body.api_key);
     user.updateUser(redmine, req.body.user_id, params).then(function(result) {
       // on fulfillment(已實現時)
-      res.status(200).send(result);
+      tools.returnExcuteResult (res, result);
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -132,17 +132,17 @@ router.route('/')
     //Post params check
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     // http request
     var redmine = user.initByApiKey(req.body.api_key);
     user.removeUser(redmine, req.body.user_id).then(function(result) {
       // on fulfillment(已實現時)
-      res.status(200).send(result);
+      tools.returnExcuteResult (res, result);
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      tools.returnServerErr (res, reason);
     });
   })
 
@@ -156,7 +156,7 @@ router.route('/:id')
     // Post params check
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
-      res.status(400).send(verifyResult);
+      tools.returnFormateErr (res, verifyResult);
       return;
     }
     params = {};
@@ -165,10 +165,10 @@ router.route('/:id')
     var redmine = user.initByApiKey(req.query.api_key);
     user.queryUserById(redmine, req.params.id, params).then(function(users) {
       // on fulfillment(已實現時)
-      res.status(200).send(users);
+      tools.returnQueryResult(res, users);
     }, function(reason) {
       // 失敗時
-      res.send(reason);
+      tools.returnServerErr (res, reason);
     });
   })
 
