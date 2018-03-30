@@ -59,7 +59,7 @@ function inserUser (redmine, user) {
     redmine.create_user(user, function(err, data) {
       if (!err) {
         console.log('Create user success', data)
-        resolve('Create user success')
+        resolve(data);
       } else {
         console.log('Create user error', err)
         reject(err)

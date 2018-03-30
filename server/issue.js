@@ -71,9 +71,9 @@ function insertIssue (redmine, params) {
     redmine.create_issue(params, function(err, data) {
       if (!err) {
         console.log('Create issue success', data)
-        resolve('Create issue success')
+        resolve(data)
       } else {
-        console.log('insert issue error', err)
+        console.log('Create issue error', err)
         reject(err)
       }
     });

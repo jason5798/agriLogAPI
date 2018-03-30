@@ -47,7 +47,7 @@ function insertProject (redmine, params) {
     redmine.create_project(params, function(err, data) {
       if (!err) {
         console.log('Create project success', data)
-        resolve('Create project success')
+        resolve(data)
       } else {
         console.log('Create project error', err)
         reject(err)
