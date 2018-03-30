@@ -42,7 +42,8 @@ router.route('/')
     if (req.query.tracker_id) params.tracker_id = req.query.tracker_id;
     if (req.query.start_date) params.start_date = req.query.start_date;
     if (req.query.assigned_to_id) params.assigned_to_id = req.query.assigned_to_id;
-    if(req.query.sort) params.sort = req.query.sort;
+    if (req.query.sort) params.sort = req.query.sort;
+    if (req.query.author_id) params.author_id = req.query.author_id;
     // Post params check -- start
     var verifyResult = tools.validateValue (params);
     if(verifyResult !== 'ok') {
