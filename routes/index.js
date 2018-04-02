@@ -130,6 +130,9 @@ router.route('/upload')
           tools.returnServerErr (res, str);
         } else {
 	        console.log('upload finish : \n%s', result);
+          if (typeof(result) === 'string') {
+            result = JSON.parse(result);
+          }
           tools.returnExcuteResult (res, result)
         }
       });
