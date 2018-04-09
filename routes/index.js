@@ -114,15 +114,21 @@ router.route('/upload')
         tools.returnFormateErr (res, verifyResult);
         return;
       }
-      let keys = Object.keys(fields);
-      let api_key = fields[keys[0]];
-      // Post params check -- start
-      console.log('api_key : \n%s',api_key);
-      let keys2 = Object.keys(files);
-      let file = files[keys2[0]];
-      console.log('file path : \n%s',file.path);
-      myhttpreq.initByApiKey(api_key);
-      var stream = fs.createReadStream(file.path);
+      try {
+        let keys = Object.keys(fields);
+        let api_key = fields[keys[0]];
+        // Post params check -- start
+        console.log('api_key : \n%s',api_key);
+        let keys2 = Object.keys(files);
+        let file = files[keys2[0]];
+        console.log('file path : \n%s',file.path);
+        myhttpreq.initByApiKey(api_key);
+        var stream = fs.createReadStream(file.path);
+      } catch (error) {
+        tools.returnErr(res, error);
+        return;
+      }
+      
       myhttpreq.uploadFile(stream,function(err,result){
         //fs.unlinkSync(file.path);
         if (err) {
