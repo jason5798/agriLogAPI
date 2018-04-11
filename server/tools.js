@@ -87,17 +87,25 @@ function returnServerErr (res, str) {
     obj = JSON.parse(str);
   }
   var message = obj.Message;
-  if (obj.Detail) {
-    if (obj.Detail.errors) {
-      message = obj.Detail.errors;
-    } else {
-      message = obj.Detail;
+  if (message) {
+    if (obj.Detail) {
+      if (obj.Detail.errors) {
+        message = obj.Detail.errors;
+      } else {
+        message = obj.Detail;
+      }
     }
+    res.send({
+      "status": obj.ErrorCode+'',
+      "message": message
+    });
+  } else {
+    res.send({
+      "status": obj.statusCode+'',
+      "message": obj.statusMessage
+    });
   }
-  res.send({
-    "status": obj.ErrorCode+'',
-    "message": message
-  });
+  
 }
 
 function returnFormateErr (res, message) {

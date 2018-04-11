@@ -42,8 +42,23 @@ function uploadFile(stream,callback) {
     });
 }
 
+function deleteFile(url,callback) {
+    opt.url=url;
+    opt.method = "DELETE";
+    opt.headers['Content-Type'] = 'x-www-form-urlencoded';
+
+    request(opt, function (error, response, body){
+        if(error) {
+            callback(error, null);
+        }
+        console.log(response);
+        callback(null,response);
+    });
+}
+
 module.exports = {
     initByUser,
     initByApiKey,
-    uploadFile
+    uploadFile,
+    deleteFile
 }

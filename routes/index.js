@@ -133,7 +133,7 @@ router.route('/upload')
         //fs.unlinkSync(file.path);
         if (err) {
           console.log('upload err : \n%s', err);
-          tools.returnServerErr (res, str);
+          tools.returnServerErr (res, err.message);
         } else {
 	        console.log('upload finish : \n%s', result);
           if (typeof(result) === 'string') {
@@ -142,6 +142,31 @@ router.route('/upload')
           tools.returnExcuteResult (res, result)
         }
       });
+    });
+})
+
+router.route('/attachments/:id')
+  .delete(function(req, res) {
+    var id = req.params.id;
+    var api_key = req.body.api_key;
+    var url = configs.redmine_server + '/attachments/'+ id +'.json';
+    //url = url + '?api_key=' + configs.redmine_apikey;
+    console.log('url : ' + url);
+    myhttpreq.initByApiKey(api_key);
+    myhttpreq.deleteFile(url, function(err,result){
+      //fs.unlinkSync(file.path);
+      if (err) {
+        console.log('delete err : \n%s', err);
+        tools.returnServerErr (res, err.message);
+      } else {
+        console.log(result.statusCode);
+        console.log(result.statusMessage);
+        if (result.statusMessage && result.statusMessage === 'OK') {
+          tools.returnExcuteResult (res, 'Delete file success')
+        } else {
+          tools.returnServerErr (res, result)
+        }
+      }
     });
 })
 
