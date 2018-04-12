@@ -129,17 +129,24 @@ router.route('/upload')
         return;
       }
       
-      myhttpreq.uploadFile(stream,function(err,result){
+      myhttpreq.uploaFile(stream,function(err,result){
         //fs.unlinkSync(file.path);
         if (err) {
           console.log('upload err : \n%s', err);
           tools.returnServerErr (res, err.message);
         } else {
-	        console.log('upload finish : \n%s', result);
-          if (typeof(result) === 'string') {
-            result = JSON.parse(result);
+          try {
+            console.log('upload finish : \n%s', result);
+            if (typeof(result) === 'string') {
+              result = JSON.parse(result);
+            }
+            tools.returnExcuteResult (res, result)
+          } catch (error) {
+            res.send({
+              "status": "401",
+              "message": error
+            });
           }
-          tools.returnExcuteResult (res, result)
         }
       });
     });
