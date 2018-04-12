@@ -5,6 +5,7 @@ var path = require('path');
 var fs = require('fs');
 var issue = require('../server/issue.js');
 var myhttpreq = require('../server/myhttpreq.js');
+var myUploadReq = require('../server/myUploadReq.js');
 var tools =  require('../server/tools.js');
 var user =  require('../server/user.js');
 var configs =  require('../configs.js');
@@ -122,33 +123,25 @@ router.route('/upload')
         let keys2 = Object.keys(files);
         let file = files[keys2[0]];
         console.log('file path : \n%s',file.path);
-        myhttpreq.initByApiKey(api_key);
         var stream = fs.createReadStream(file.path);
+        myUploadReq.initByApiKey(api_key);
+        myUploadReq.uploadFile(stream, function(err,result){
+          //fs.unlinkSync(file.path);
+          if (err) {
+            console.log('upload err : \n%s', err);
+            tools.returnServerErr (res, err);
+          } else {
+            console.log('upload finish : \n%s', result);
+            if (result !=='' && typeof(result) === 'string' ) {
+              result = JSON.parse(result);
+            }
+            tools.returnExcuteResult (res, result)
+          }
+        });
       } catch (error) {
         tools.returnErr(res, error);
         return;
       }
-      
-      myhttpreq.uploaFile(stream,function(err,result){
-        //fs.unlinkSync(file.path);
-        if (err) {
-          console.log('upload err : \n%s', err);
-          tools.returnServerErr (res, err.message);
-        } else {
-          try {
-            console.log('upload finish : \n%s', result);
-            if (typeof(result) === 'string') {
-              result = JSON.parse(result);
-            }
-            tools.returnExcuteResult (res, result)
-          } catch (error) {
-            res.send({
-              "status": "401",
-              "message": error
-            });
-          }
-        }
-      });
     });
 })
 
@@ -164,7 +157,7 @@ router.route('/attachments/:id')
       //fs.unlinkSync(file.path);
       if (err) {
         console.log('delete err : \n%s', err);
-        tools.returnServerErr (res, err.message);
+        tools.returnServerErr (res, err);
       } else {
         console.log(result.statusCode);
         console.log(result.statusMessage);
@@ -176,6 +169,7 @@ router.route('/attachments/:id')
       }
     });
 })
+
 
 module.exports = router;
 

@@ -86,8 +86,9 @@ function returnServerErr (res, str) {
   if (typeof(obj) === 'string') {
     obj = JSON.parse(str);
   }
-  var message = obj.Message;
-  if (message) {
+  
+  if (obj.Message) {
+    var message = obj.Message;
     if (obj.Detail) {
       if (obj.Detail.errors) {
         message = obj.Detail.errors;
