@@ -51,7 +51,7 @@ function removeProjectMembership (redmine, membership_id) {
             console.log('Delete membership success')
             resolve('Delete membership success')
         } else {
-            console.log('Delete membership error', error)
+            console.log('Delete membership error', err)
             reject(err)
         }
     })
